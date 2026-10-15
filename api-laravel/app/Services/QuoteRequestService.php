@@ -33,4 +33,17 @@ class QuoteRequestService
     {
         return QuoteRequest::create($data);
     }
+
+    public function assign(QuoteRequest $quoteRequest, int $userId): QuoteRequest
+    {
+        $quoteRequest->assigned_to = $userId;
+        $quoteRequest->save();
+
+        return $quoteRequest;
+    }
+
+    public function delete(QuoteRequest $quoteRequest): void
+    {
+        $quoteRequest->delete();
+    }
 }

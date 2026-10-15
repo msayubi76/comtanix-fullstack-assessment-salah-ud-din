@@ -16,4 +16,19 @@ class QuoteRequestPolicy
     {
         return true;
     }
+
+    public function updateStatus(User $user, QuoteRequest $quoteRequest): bool
+    {
+        return $user->isAdmin() || $quoteRequest->assigned_to === $user->id;
+    }
+
+    public function assign(User $user, QuoteRequest $quoteRequest): bool
+    {
+        return $user->isAdmin();
+    }
+
+    public function delete(User $user, QuoteRequest $quoteRequest): bool
+    {
+        return $user->isAdmin();
+    }
 }
