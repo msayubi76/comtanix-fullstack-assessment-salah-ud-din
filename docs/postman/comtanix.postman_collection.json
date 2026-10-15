@@ -1,0 +1,673 @@
+{
+  "info": {
+    "_postman_id": "4e43850e-6f67-4848-9b85-bc899c2127ab",
+    "name": "Comtanix Quote Manager",
+    "description": "Laravel API and Node audit service. Import together with comtanix.postman_environment.json, run \"Auth / login\" first, the token is saved automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Laravel API",
+      "item": [
+        {
+          "name": "Auth",
+          "item": [
+            {
+              "name": "login",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "email",
+                      "value": "{{admin_user}}"
+                    },
+                    {
+                      "key": "password",
+                      "value": "{{password}}"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "login"
+                  ]
+                },
+                "description": "Logs in with the seeded admin account and saves the token to the environment. Switch the email to {{staff_user}} to test staff permissions."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "if (json.token) {",
+                      "    pm.environment.set(\"token\", json.token);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "me",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/me",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "me"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Public",
+          "item": [
+            {
+              "name": "createQuoteService",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "client_name",
+                      "value": "salah1"
+                    },
+                    {
+                      "key": "email",
+                      "value": "salah@1gmail.cm"
+                    },
+                    {
+                      "key": "service_type",
+                      "value": "web_development",
+                      "description": " web_development, mobile_app, ui_ux_design, cloud_devops, consulting"
+                    },
+                    {
+                      "key": "budget_range",
+                      "value": "5k_10k",
+                      "description": "under_5k, 5k_10k, 10k_25k, 25k_50k, over_50k"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/public/quote-requests",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "public",
+                    "quote-requests"
+                  ]
+                },
+                "description": "Public form endpoint, no login. Rate limited to 3 per minute and 20 per hour per IP. Adding a non-empty \"website\" field (honeypot) is rejected."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Quote requests",
+          "item": [
+            {
+              "name": "getQuoteRequests",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/quote-requests",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "quote-requests"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "status",
+                      "value": "new",
+                      "disabled": true,
+                      "description": "new, in_review, quoted, closed"
+                    },
+                    {
+                      "key": "assigned_to",
+                      "value": "2",
+                      "disabled": true
+                    },
+                    {
+                      "key": "service_type",
+                      "value": "web_development",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": "created_at",
+                      "disabled": true,
+                      "description": "created_at, updated_at, client_name, status"
+                    },
+                    {
+                      "key": "direction",
+                      "value": "desc",
+                      "disabled": true
+                    },
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "15",
+                      "disabled": true,
+                      "description": "max 100"
+                    }
+                  ]
+                },
+                "description": "Enable any of the query params to filter, sort or paginate."
+              },
+              "response": []
+            },
+            {
+              "name": "quoteRequestDetail",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/quote-requests/{{quote_request_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "quote-requests",
+                    "{{quote_request_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "updateQuoteRequestStatus",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "status",
+                      "value": "in_review",
+                      "description": " new, in_review, quoted, closed"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/quote-requests/{{quote_request_id}}/status",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "quote-requests",
+                    "{{quote_request_id}}",
+                    "status"
+                  ]
+                },
+                "description": "Admin, or the staff member the request is assigned to. Allowed: new -> in_review -> quoted -> closed, and in_review -> closed. Anything else returns 422."
+              },
+              "response": []
+            },
+            {
+              "name": "assignQuoteRequestToUser",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "assigned_to",
+                      "value": "2"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/quote-requests/{{quote_request_id}}/assign",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "quote-requests",
+                    "{{quote_request_id}}",
+                    "assign"
+                  ]
+                },
+                "description": "Admin only."
+              },
+              "response": []
+            },
+            {
+              "name": "getQuoteRequestsEvents",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/quote-requests/{{quote_request_id}}/audit-events",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "quote-requests",
+                    "{{quote_request_id}}",
+                    "audit-events"
+                  ]
+                },
+                "description": "Activity timeline, read from the audit service through Laravel. Returns 503 if the audit service is down."
+              },
+              "response": []
+            },
+            {
+              "name": "quoteRequestDelete",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/quote-requests/{{delete_quote_request_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "quote-requests",
+                    "{{delete_quote_request_id}}"
+                  ]
+                },
+                "description": "Admin only, soft delete. Uses its own variable so running the whole collection does not delete the request used by the other calls."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Users",
+          "item": [
+            {
+              "name": "getUsers",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/users",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "users"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Audit service (Node)",
+      "item": [
+        {
+          "name": "health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{audit_url}}/health",
+              "host": [
+                "{{audit_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send signed event",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"event_id\", pm.variables.replaceIn(\"{{$guid}}\"));",
+                  "pm.environment.set(\"occurred_at\", new Date().toISOString());",
+                  "",
+                  "// sign the exact body that will be sent, like the Laravel job does",
+                  "const body = pm.variables.replaceIn(pm.request.body.raw);",
+                  "const signature = CryptoJS.HmacSHA256(body, pm.environment.get(\"audit_secret\")).toString(CryptoJS.enc.Hex);",
+                  "pm.request.headers.upsert({ key: \"X-Signature\", value: signature });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"{{event_id}}\",\n  \"type\": \"quote_request.status_changed\",\n  \"quoteRequestId\": {{quote_request_id}},\n  \"actorId\": 1,\n  \"data\": {\n    \"from\": \"new\",\n    \"to\": \"in_review\"\n  },\n  \"occurredAt\": \"{{occurred_at}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{audit_url}}/events",
+              "host": [
+                "{{audit_url}}"
+              ],
+              "path": [
+                "events"
+              ]
+            },
+            "description": "Creates a new event. The pre-request script generates the eventId and signs the raw body with audit_secret (must match AUDIT_SECRET in audit-service/.env). Expect 201."
+          },
+          "response": []
+        },
+        {
+          "name": "Send the same event again",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// reuses the event_id from \"Send signed event\", so the service should answer \"Event already recorded.\"",
+                  "",
+                  "// sign the exact body that will be sent, like the Laravel job does",
+                  "const body = pm.variables.replaceIn(pm.request.body.raw);",
+                  "const signature = CryptoJS.HmacSHA256(body, pm.environment.get(\"audit_secret\")).toString(CryptoJS.enc.Hex);",
+                  "pm.request.headers.upsert({ key: \"X-Signature\", value: signature });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"{{event_id}}\",\n  \"type\": \"quote_request.status_changed\",\n  \"quoteRequestId\": {{quote_request_id}},\n  \"actorId\": 1,\n  \"data\": {\n    \"from\": \"new\",\n    \"to\": \"in_review\"\n  },\n  \"occurredAt\": \"{{occurred_at}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{audit_url}}/events",
+              "host": [
+                "{{audit_url}}"
+              ],
+              "path": [
+                "events"
+              ]
+            },
+            "description": "Sends the previous event again. Expect 200 \"Event already recorded.\" and still only one copy stored."
+          },
+          "response": []
+        },
+        {
+          "name": "List events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{audit_url}}/events?quoteRequestId={{quote_request_id}}",
+              "host": [
+                "{{audit_url}}"
+              ],
+              "path": [
+                "events"
+              ],
+              "query": [
+                {
+                  "key": "quoteRequestId",
+                  "value": "{{quote_request_id}}"
+                },
+                {
+                  "key": "type",
+                  "value": "quote_request.status_changed",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "20",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Internal endpoint, no auth. The dashboard reads it through Laravel instead."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
