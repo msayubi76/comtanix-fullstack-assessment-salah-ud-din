@@ -13,6 +13,7 @@ class AuthService
         if (! Auth::once(['email' => $email, 'password' => $password])) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
+            ]);
         }
 
         $user = Auth::user();
