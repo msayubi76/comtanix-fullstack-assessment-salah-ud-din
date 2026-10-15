@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate, type Location } from 'react-router'
+import { Link, Navigate, useLocation, useNavigate, type Location } from 'react-router'
 import { getErrorMessage, getFieldErrors } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 
@@ -88,6 +88,10 @@ export function LoginPage() {
             {submitting ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-sm text-slate-500">
+          Looking for a quote? <Link to="/request-quote" className="font-medium text-indigo-600 hover:text-indigo-800">Request one here</Link>
+        </p>
       </div>
     </div>
   )

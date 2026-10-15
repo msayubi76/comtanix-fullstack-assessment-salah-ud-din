@@ -1,5 +1,5 @@
 import type { BudgetRange, QuoteStatus, ServiceType, SortField } from '../constants'
-import { api } from './client'
+import { api, getCsrfCookie } from './client'
 import type { User } from './types'
 
 export interface QuoteRequest {
@@ -51,6 +51,23 @@ export async function listUsers() {
   const { data } = await api.get('/api/users')
 
   return data.users as User[]
+}
+
+export interface QuoteRequestSubmission {
+  client_name: string
+  email: string
+  company: string
+  service_type: ServiceType | ''
+  budget_range: BudgetRange | ''
+  message: string
+  website: string
+}
+
+export async function submitQuoteRequest(submission: QuoteRequestSubmission) {
+  await getCsrfCookie()
+  const { data } = await api.post('/api/public/quote-requests', submission)
+
+  return data.quote_request as QuoteRequest
 }
 
 export async function getQuoteRequest(id: number) {
