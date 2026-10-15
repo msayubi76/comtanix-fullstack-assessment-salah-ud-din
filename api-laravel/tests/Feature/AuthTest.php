@@ -39,6 +39,36 @@ class AuthTest extends TestCase
             ->assertJsonValidationErrors('email');
     }
 
+    public function test_dashboard_login_uses_session_cookie_instead_of_token(): void
+    {
+        $user = User::factory()->create(['email' => 'staff@test.test']);
+
+        $this->withHeader('Origin', 'http://localhost:5173')
+            ->postJson('/api/login', [
+                'email' => 'staff@test.test',
+                'password' => 'password',
+            ])
+            ->assertOk()
+            ->assertJsonPath('user.id', $user->id)
+            ->assertJsonMissingPath('token')
+            ->assertCookie(config('session.cookie'));
+
+        $this->assertAuthenticatedAs($user, 'web');
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
+
+    public function test_dashboard_logout_ends_the_session(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'web')
+            ->withHeader('Origin', 'http://localhost:5173')
+            ->postJson('/api/logout')
+            ->assertOk();
+
+        $this->assertGuest('web');
+    }
+
     public function test_protected_routes_require_a_token(): void
     {
         $this->getJson('/api/me')
