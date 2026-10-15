@@ -18,7 +18,7 @@ class AuditEventService
             'quoteRequestId' => $quoteRequest->id,
             'actorId' => Auth::id(),
             'data' => $data,
-            'occurredAt' => now()->toIso8601String(),
+            'occurredAt' => now()->toISOString(),
         ])->afterCommit();
     }
 }
