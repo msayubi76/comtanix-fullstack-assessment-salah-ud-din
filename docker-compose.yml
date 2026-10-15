@@ -1,0 +1,108 @@
+# Databases only:   docker compose up -d mysql mongo
+# Everything:       docker compose --profile app up -d --build
+
+x-laravel-env: &laravel-env
+  APP_NAME: "Comtanix Quote Manager"
+  APP_ENV: local
+  APP_DEBUG: "true"
+  APP_URL: http://localhost:${API_PORT:-8000}
+  DB_CONNECTION: mysql
+  DB_HOST: mysql
+  DB_PORT: 3306
+  DB_DATABASE: comtanix
+  DB_USERNAME: comtanix
+  DB_PASSWORD: comtanix
+  SESSION_DRIVER: database
+  CACHE_STORE: database
+  QUEUE_CONNECTION: database
+  LOG_CHANNEL: stderr
+  FRONTEND_URL: http://localhost:${FRONTEND_PORT:-5173}
+  SANCTUM_STATEFUL_DOMAINS: localhost:${FRONTEND_PORT:-5173}
+  AUDIT_SERVICE_URL: http://audit-service:4000/events
+  AUDIT_SERVICE_SECRET: ${AUDIT_SECRET:-local-docker-secret-change-me}
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: comtanix
+      MYSQL_USER: comtanix
+      MYSQL_PASSWORD: comtanix
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "${MYSQL_PORT:-3307}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-ucomtanix", "-pcomtanix"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  audit-service:
+    profiles: [app]
+    build: ./audit-service
+    environment:
+      PORT: 4000
+      MONGO_URI: mongodb://mongo:27017/comtanix_audit
+      AUDIT_SECRET: ${AUDIT_SECRET:-local-docker-secret-change-me}
+    ports:
+      - "${AUDIT_PORT:-4000}:4000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  api:
+    profiles: [app]
+    build: ./api-laravel
+    image: comtanix-api
+    environment:
+      <<: *laravel-env
+      RUN_MIGRATIONS: "true"
+      PHP_CLI_SERVER_WORKERS: 4
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  queue:
+    profiles: [app]
+    image: comtanix-api
+    pull_policy: never
+    command: ["php", "artisan", "queue:work"]
+    environment: *laravel-env
+    # starts before the api has finished migrating, so retry until the jobs table exists
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+      audit-service:
+        condition: service_started
+
+  frontend:
+    profiles: [app]
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:${API_PORT:-8000}
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    depends_on:
+      - api
+
+volumes:
+  mysql-data:
+  mongo-data:
