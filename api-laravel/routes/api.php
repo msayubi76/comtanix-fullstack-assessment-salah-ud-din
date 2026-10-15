@@ -17,6 +17,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/quote-requests', [QuoteRequestController::class, 'index'])->can('viewAny', QuoteRequest::class);
     Route::get('/quote-requests/{quoteRequest}', [QuoteRequestController::class, 'show'])->can('view', 'quoteRequest');
+    Route::get('/quote-requests/{quoteRequest}/audit-events', [QuoteRequestController::class, 'auditEvents'])->can('view', 'quoteRequest');
 
     Route::patch('/quote-requests/{quoteRequest}/status', [QuoteRequestController::class, 'updateStatus'])->can('updateStatus', 'quoteRequest');
     Route::patch('/quote-requests/{quoteRequest}/assign', [QuoteRequestController::class, 'assign'])->can('assign', 'quoteRequest');

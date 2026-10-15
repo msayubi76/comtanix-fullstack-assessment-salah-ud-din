@@ -15,17 +15,20 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
-        [$user, $token] = $this->authService->login($request->validated('email'), $request->validated('password'));
+        [$user, $token] = $this->authService->login($request, $request->validated('email'), $request->validated('password'));
 
-        return ApiResponse::success('Login successful.', [
-            'token' => $token,
-            'user' => new UserResource($user),
-        ]);
+        $data = ['user' => new UserResource($user)];
+
+        if ($token) {
+            $data['token'] = $token;
+        }
+
+        return ApiResponse::success('Login successful.', $data);
     }
 
     public function logout(Request $request): JsonResponse
     {
-        $this->authService->logout($request->user());
+        $this->authService->logout($request);
 
         return ApiResponse::success('Logged out successfully.');
     }
