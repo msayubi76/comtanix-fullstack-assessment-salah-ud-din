@@ -28,6 +28,12 @@ return [
         'key' => env('RESEND_KEY'),
     ],
 
+    'audit' => [
+        'url' => env('AUDIT_SERVICE_URL', 'http://localhost:4000/events'),
+        'secret' => env('AUDIT_SERVICE_SECRET'),
+        'timeout' => env('AUDIT_SERVICE_TIMEOUT', 5),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

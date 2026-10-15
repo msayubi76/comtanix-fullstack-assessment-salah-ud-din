@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Enums\AuditEventType;
 use App\Models\QuoteRequest;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class QuoteRequestService
 {
+    public function __construct(private AuditEventService $auditEventService) {}
+
     public function list(array $filters): LengthAwarePaginator
     {
         $direction = $filters['direction'] ?? 'desc';
@@ -31,13 +34,28 @@ class QuoteRequestService
 
     public function create(array $data): QuoteRequest
     {
-        return QuoteRequest::create($data);
+        $quoteRequest = QuoteRequest::create($data);
+
+        $this->auditEventService->publish(AuditEventType::QuoteRequestCreated, $quoteRequest, [
+            'status' => $quoteRequest->status->value,
+            'service_type' => $quoteRequest->service_type->value,
+            'budget_range' => $quoteRequest->budget_range->value,
+        ]);
+
+        return $quoteRequest;
     }
 
     public function assign(QuoteRequest $quoteRequest, int $userId): QuoteRequest
     {
+        $from = $quoteRequest->assigned_to;
+
         $quoteRequest->assigned_to = $userId;
         $quoteRequest->save();
+
+        $this->auditEventService->publish(AuditEventType::QuoteRequestAssigned, $quoteRequest, [
+            'from' => $from,
+            'to' => $userId,
+        ]);
 
         return $quoteRequest;
     }
