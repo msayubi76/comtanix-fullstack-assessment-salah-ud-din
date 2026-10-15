@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const eventRoutes = require('./routes/events');
 const { success } = require('./utils/apiResponse');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
@@ -21,6 +22,8 @@ function createApp() {
       database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     });
   });
+
+  app.use('/events', eventRoutes);
 
   app.use(notFound);
   app.use(errorHandler);
