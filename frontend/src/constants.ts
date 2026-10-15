@@ -30,6 +30,14 @@ export const SORT_LABELS = {
 
 export const PER_PAGE_OPTIONS = [15, 25, 50] as const
 
+// mirrors QuoteStatus::allowedTransitions() in Laravel; the API still enforces it
+export const ALLOWED_TRANSITIONS: Record<keyof typeof STATUS_LABELS, (keyof typeof STATUS_LABELS)[]> = {
+  new: ['in_review'],
+  in_review: ['quoted', 'closed'],
+  quoted: ['closed'],
+  closed: [],
+}
+
 export type QuoteStatus = keyof typeof STATUS_LABELS
 export type ServiceType = keyof typeof SERVICE_TYPE_LABELS
 export type BudgetRange = keyof typeof BUDGET_RANGE_LABELS

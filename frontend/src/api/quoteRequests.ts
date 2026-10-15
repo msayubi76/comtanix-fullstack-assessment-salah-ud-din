@@ -52,3 +52,38 @@ export async function listUsers() {
 
   return data.users as User[]
 }
+
+export async function getQuoteRequest(id: number) {
+  const { data } = await api.get(`/api/quote-requests/${id}`)
+
+  return data.quote_request as QuoteRequest
+}
+
+export async function updateQuoteStatus(id: number, status: QuoteStatus) {
+  const { data } = await api.patch(`/api/quote-requests/${id}/status`, { status })
+
+  return data.quote_request as QuoteRequest
+}
+
+export async function assignQuoteRequest(id: number, assignedTo: number) {
+  const { data } = await api.patch(`/api/quote-requests/${id}/assign`, { assigned_to: assignedTo })
+
+  return data.quote_request as QuoteRequest
+}
+
+export type AuditEventType = 'quote_request.created' | 'quote_request.status_changed' | 'quote_request.assigned'
+
+export interface AuditEvent {
+  id: string
+  event_id: string
+  type: AuditEventType
+  actor: User | null
+  data: Record<string, string | number | null>
+  occurred_at: string
+}
+
+export async function listAuditEvents(id: number) {
+  const { data } = await api.get(`/api/quote-requests/${id}/audit-events`)
+
+  return data.audit_events as AuditEvent[]
+}

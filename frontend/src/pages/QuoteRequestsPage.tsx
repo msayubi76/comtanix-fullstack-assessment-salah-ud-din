@@ -1,8 +1,11 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { useCallback } from 'react'
+import { useSearchParams } from 'react-router'
 import { getErrorMessage } from '../api/client'
 import { listQuoteRequests, listUsers } from '../api/quoteRequests'
 import { Filters } from '../components/quote-requests/Filters'
 import { Pagination } from '../components/quote-requests/Pagination'
+import { QuoteRequestDrawer } from '../components/quote-requests/QuoteRequestDrawer'
 import { QuoteRequestTable } from '../components/quote-requests/QuoteRequestTable'
 import type { SortField } from '../constants'
 import { useListFilters } from '../hooks/useListFilters'
@@ -31,6 +34,25 @@ export function QuoteRequestsPage() {
     queryFn: listUsers,
     staleTime: 5 * 60 * 1000,
   })
+
+  const [params, setParams] = useSearchParams()
+  const selectedId = /^\d+$/.test(params.get('selected') ?? '') ? Number(params.get('selected')) : null
+
+  function openDetail(id: number) {
+    setParams((current) => {
+      const next = new URLSearchParams(current)
+      next.set('selected', String(id))
+      return next
+    })
+  }
+
+  const closeDetail = useCallback(() => {
+    setParams((current) => {
+      const next = new URLSearchParams(current)
+      next.delete('selected')
+      return next
+    })
+  }, [setParams])
 
   function handleSort(field: SortField) {
     const direction = filters.sort === field && filters.direction === 'desc' ? 'asc' : 'desc'
@@ -87,6 +109,7 @@ export function QuoteRequestsPage() {
             sort={filters.sort}
             direction={filters.direction}
             onSort={handleSort}
+            onSelect={(item) => openDetail(item.id)}
           />
           <div className="mt-4">
             <Pagination
@@ -96,6 +119,10 @@ export function QuoteRequestsPage() {
             />
           </div>
         </div>
+      )}
+
+      {selectedId && (
+        <QuoteRequestDrawer key={selectedId} id={selectedId} users={users.data ?? []} onClose={closeDetail} />
       )}
     </div>
   )
